@@ -14,16 +14,113 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      documents: {
+        Row: {
+          created_at: string
+          expiry_date: string | null
+          file_name: string
+          file_type: string
+          file_url: string
+          id: string
+          product_name: string | null
+          purchase_date: string | null
+          user_id: string
+          warranty_duration: number | null
+        }
+        Insert: {
+          created_at?: string
+          expiry_date?: string | null
+          file_name: string
+          file_type: string
+          file_url: string
+          id?: string
+          product_name?: string | null
+          purchase_date?: string | null
+          user_id: string
+          warranty_duration?: number | null
+        }
+        Update: {
+          created_at?: string
+          expiry_date?: string | null
+          file_name?: string
+          file_type?: string
+          file_url?: string
+          id?: string
+          product_name?: string | null
+          purchase_date?: string | null
+          user_id?: string
+          warranty_duration?: number | null
+        }
+        Relationships: []
+      }
+      reminders: {
+        Row: {
+          created_at: string
+          document_id: string
+          id: string
+          reminder_date: string
+          triggered: boolean
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          document_id: string
+          id?: string
+          reminder_date: string
+          triggered?: boolean
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          document_id?: string
+          id?: string
+          reminder_date?: string
+          triggered?: boolean
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reminders_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +247,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "user"],
+    },
   },
 } as const
