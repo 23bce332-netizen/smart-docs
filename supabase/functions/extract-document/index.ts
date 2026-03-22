@@ -9,12 +9,12 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
-    if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY not configured");
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
     const { fileName, fileType, fileBase64 } = await req.json();
 
-    const prompt = `You are an AI that extracts product and warranty information from documents.
+    const systemPrompt = `You are an AI that extracts product and warranty information from documents.
 Extract the following if possible:
 - product_name: the product or item name
 - purchase_date: in YYYY-MM-DD format
@@ -22,41 +22,48 @@ Extract the following if possible:
 
 Return ONLY valid JSON with these three fields. If you cannot determine a field, use null.`;
 
-    const parts: any[] = [{ text: prompt }];
+    const userContent: any[] = [];
 
     if (fileBase64 && fileType) {
-      // Send the actual file to Gemini's vision model
-      parts.push({
-        inline_data: {
-          mime_type: fileType,
-          data: fileBase64,
-        },
+      userContent.push({
+        type: "image_url",
+        image_url: { url: `data:${fileType};base64,${fileBase64}` },
+      });
+      userContent.push({
+        type: "text",
+        text: `Extract product and warranty information from this document. File name: "${fileName}"`,
       });
     } else {
-      // Fallback: use file name hints
-      parts.push({ text: `Document file name: "${fileName}", type: "${fileType}". Extract what you can from the name.` });
+      userContent.push({
+        type: "text",
+        text: `Document file name: "${fileName}", type: "${fileType}". Extract what you can from the name.`,
+      });
     }
 
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{ parts }],
-          generationConfig: { responseMimeType: "application/json" },
-        }),
-      }
-    );
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${LOVABLE_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userContent },
+        ],
+        response_format: { type: "json_object" },
+      }),
+    });
 
     if (!response.ok) {
       const errText = await response.text();
-      console.error("Gemini API error:", response.status, errText);
-      throw new Error(`Gemini API error: ${response.status}`);
+      console.error("AI Gateway error:", response.status, errText);
+      throw new Error(`AI Gateway error: ${response.status}`);
     }
 
     const result = await response.json();
-    const text = result.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
+    const text = result.choices?.[0]?.message?.content || "{}";
     const extracted = JSON.parse(text);
 
     return new Response(JSON.stringify(extracted), {
