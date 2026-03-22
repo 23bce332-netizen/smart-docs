@@ -47,12 +47,21 @@ const UploadPage = () => {
     if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
   }, []);
 
+  const fileToBase64 = (f: File): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve((reader.result as string).split(",")[1]);
+      reader.onerror = reject;
+      reader.readAsDataURL(f);
+    });
+
   const extractWithAI = async () => {
     if (!file) return;
     setExtracting(true);
     try {
+      const fileBase64 = await fileToBase64(file);
       const { data, error } = await supabase.functions.invoke("extract-document", {
-        body: { fileName: file.name, fileType: file.type },
+        body: { fileName: file.name, fileType: file.type, fileBase64 },
       });
       if (error) throw error;
       if (data?.product_name) setProductName(data.product_name);
