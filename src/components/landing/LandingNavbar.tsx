@@ -148,7 +148,19 @@ const LandingNavbar = () => {
                 {link.label}
               </a>
             ))}
-            {!user && (
+            {user ? (
+              <div className="pt-3 space-y-1 border-t border-border/50">
+                <button onClick={() => { navigate("/dashboard"); setMobileOpen(false); }} className="flex w-full items-center gap-2 px-3 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground rounded-md hover:bg-muted/50">
+                  <LayoutDashboard className="h-4 w-4" /> Dashboard
+                </button>
+                <button onClick={() => { navigate("/documents"); setMobileOpen(false); }} className="flex w-full items-center gap-2 px-3 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground rounded-md hover:bg-muted/50">
+                  <FileText className="h-4 w-4" /> Documents
+                </button>
+                <button onClick={() => { handleSignOut(); setMobileOpen(false); }} className="flex w-full items-center gap-2 px-3 py-2.5 text-sm font-medium text-destructive hover:bg-destructive/10 rounded-md">
+                  <LogOut className="h-4 w-4" /> Sign out
+                </button>
+              </div>
+            ) : (
               <div className="pt-3 flex flex-col gap-2">
                 <Button variant="outline" className="w-full" onClick={() => { navigate("/login"); setMobileOpen(false); }}>
                   Log in
