@@ -99,6 +99,10 @@ const LandingNavbar = () => {
                     <FileText className="mr-2 h-4 w-4" />
                     Documents
                   </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/reminders")} className="cursor-pointer">
+                    <User className="mr-2 h-4 w-4" />
+                    Profile
+                  </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer text-destructive focus:text-destructive">
                     <LogOut className="mr-2 h-4 w-4" />
